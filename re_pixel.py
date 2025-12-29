@@ -6,7 +6,16 @@ import numpy as np
 from scipy.signal import find_peaks
 
 
-def restore_pixel_art(image_path, output_path, blur_sigma=0, sample_radius=0):
+def restore_pixel_art(
+    image_path,
+    output_path,
+    blur_sigma=0,
+    sample_radius=0,
+    known_block_w=None,
+    known_block_h=None,
+    known_phase_x=None,
+    known_phase_y=None,
+):
     """
     Restores the original resolution of upscaled pixel art by detecting the grid pattern.
 
@@ -18,6 +27,10 @@ def restore_pixel_art(image_path, output_path, blur_sigma=0, sample_radius=0):
         sample_radius: Radius for color sampling averaging.
                        0 = Center pixel only (nearest neighbor feel).
                        >0 = Average within the radius (smoother).
+        known_block_w: Optional fixed block size in pixels for width (overrides detection).
+        known_block_h: Optional fixed block size in pixels for height (overrides detection).
+        known_phase_x: Optional fixed grid phase offset in X (overrides detection).
+        known_phase_y: Optional fixed grid phase offset in Y (overrides detection).
     """
 
     # 1. Load image
@@ -84,8 +97,8 @@ def restore_pixel_art(image_path, output_path, blur_sigma=0, sample_radius=0):
         block_size = int(round(estimated_size))
         return block_size if block_size > 1 else 1
 
-    block_w = get_block_size(proj_x)
-    block_h = get_block_size(proj_y)
+    block_w = get_block_size(proj_x) if known_block_w is None else known_block_w
+    block_h = get_block_size(proj_y) if known_block_h is None else known_block_h
 
     print(f"Estimated Block Size: Width={block_w}, Height={block_h}")
 
@@ -125,8 +138,8 @@ def restore_pixel_art(image_path, output_path, blur_sigma=0, sample_radius=0):
         return best_phase
 
     # Calculate optimal phase (location of grid lines)
-    phase_x = find_best_phase(proj_x, block_w)
-    phase_y = find_best_phase(proj_y, block_h)
+    phase_x = find_best_phase(proj_x, block_w) if known_phase_x is None else known_phase_x
+    phase_y = find_best_phase(proj_y, block_h) if known_phase_y is None else known_phase_y
 
     # [Offset Calculation]
     # The gradient peaks at the block boundary.
@@ -201,6 +214,27 @@ if __name__ == "__main__":
         default=0,
         help="Sampling radius for color averaging. 0=Center pixel only, 1=3x3 average... (default: 0)",
     )
+    parser.add_argument(
+        "-w",
+        "--block-width",
+        type=int,
+        default=None,
+        help="Fixed block width in pixels (overrides detection)",
+    )
+    parser.add_argument(
+        "-x",
+        "--phase-x",
+        type=int,
+        default=None,
+        help="Fixed grid phase offset in X (overrides detection)",
+    )
+    parser.add_argument(
+        "-y",
+        "--phase-y",
+        type=int,
+        default=None,
+        help="Fixed grid phase offset in Y (overrides detection)",
+    )
 
     args = parser.parse_args()
 
@@ -212,5 +246,12 @@ if __name__ == "__main__":
         output_path = f"{base}_restored.png"
 
     restore_pixel_art(
-        input_path, output_path, blur_sigma=args.blur, sample_radius=args.radius
+        input_path,
+        output_path,
+        blur_sigma=args.blur,
+        sample_radius=args.radius,
+        known_block_w=args.block_width,
+        known_block_h=args.block_width,
+        known_phase_x=args.phase_x,
+        known_phase_y=args.phase_y,
     )
