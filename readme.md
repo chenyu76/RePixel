@@ -9,8 +9,8 @@ RePixel uses FFT and gradient analysis to automatically detect the pixel grid an
 - **Automatic Grid Detection:** Uses Fast Fourier Transform (FFT) to determine the underlying block size (scaling factor) without manual input.
 - **Phase Alignment:** Automatically calculates grid offsets (X and Y), allowing it to work even if the image has been cropped or doesn't start perfectly at (0,0).
 - **Smart Sampling:**
-    - **Center Sampling:** Picks the pixel from the exact center of the block for crisp restoration.
-    - **Average Sampling:** Option to average the colors within a block, useful if the source image has compression artifacts or noise.
+  - **Center Sampling:** Picks the pixel from the exact center of the block for crisp restoration.
+  - **Average Sampling:** Option to average the colors within a block, useful if the source image has compression artifacts or noise.
 - **Noise Robustness:** Optional Gaussian blur pre-processing to handle JPEG artifacts or noisy scans before grid detection.
 
 ## Requirements
@@ -46,12 +46,13 @@ python re_pixel.py input.png -o output.png --blur 0.5 --radius 1
 
 ### Arguments
 
-| Argument | Flag | Description |
-| --- | --- | --- |
-| **Input** | `input` | Path to the source image (Required). |
-| **Output** | `-o`, `--output` | Path to save the restored image. Defaults to `<name>_restored.png`. |
-| **Blur** | `-b`, `--blur` | Pre-processing Gaussian blur sigma. Increase this if the tool struggles to find the grid due to noise/JPEG artifacts. Default is `0`. |
-| **Radius** | `-r`, `--radius` | Sampling radius.  `0` = Center pixel (Nearest Neighbor logic).  `>0` = Averages a radius around the center (e.g., `1` averages a 3x3 area). |
+| Argument   | Flag             | Description                                                                                                                               |
+| ---------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Input**  | `input`          | Path to the source image (Required).                                                                                                      |
+| **Output** | `-o`, `--output` | Path to save the restored image. Defaults to `<name>_restored.png`.                                                                       |
+| **Blur**   | `-b`, `--blur`   | Pre-processing Gaussian blur sigma. Increase this if the tool struggles to find the grid due to noise/JPEG artifacts. Default is `0`.     |
+| **Radius** | `-r`, `--radius` | Sampling radius. `0` = Center pixel (Nearest Neighbor logic). `>0` = Averages a radius around the center (e.g., `1` averages a 3x3 area). |
+| **Scale**  | `-s`, `--scale`  | Scale factor to enlarge the output image (e.g. 2, 4). Default: 1 (Original Size)                                                          |
 
 ## How It Works
 
@@ -64,3 +65,4 @@ python re_pixel.py input.png -o output.png --blur 0.5 --radius 1
 ## License
 
 This project is open-source and available under the MIT License.
+
