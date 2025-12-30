@@ -11,6 +11,7 @@ def restore_pixel_art(
     output_path,
     blur_sigma=0,
     sample_radius=0,
+    output_scale=1,
     known_block_w=None,
     known_block_h=None,
     known_phase_x=None,
@@ -138,8 +139,12 @@ def restore_pixel_art(
         return best_phase
 
     # Calculate optimal phase (location of grid lines)
-    phase_x = find_best_phase(proj_x, block_w) if known_phase_x is None else known_phase_x
-    phase_y = find_best_phase(proj_y, block_h) if known_phase_y is None else known_phase_y
+    phase_x = (
+        find_best_phase(proj_x, block_w) if known_phase_x is None else known_phase_x
+    )
+    phase_y = (
+        find_best_phase(proj_y, block_h) if known_phase_y is None else known_phase_y
+    )
 
     # [Offset Calculation]
     # The gradient peaks at the block boundary.
@@ -186,6 +191,19 @@ def restore_pixel_art(
     # Vectorized sampling
     restored_img = sample_img[yy, xx]
 
+    # Optional Upscaling
+    if output_scale > 1:
+        print(f"Upscaling output by {output_scale}x")
+        restored_img = cv2.resize(
+            restored_img,
+            dsize=None,
+            fx=output_scale,
+            fy=output_scale,
+            interpolation=cv2.INTER_NEAREST,
+        )
+        new_w *= output_scale
+        new_h *= output_scale
+
     cv2.imwrite(output_path, restored_img)
     print(f"Restored image saved to {output_path} ({new_w}x{new_h})")
 
@@ -213,6 +231,13 @@ if __name__ == "__main__":
         type=int,
         default=0,
         help="Sampling radius for color averaging. 0=Center pixel only, 1=3x3 average... (default: 0)",
+    )
+    parser.add_argument(
+        "-s",
+        "--scale",
+        type=int,
+        default=1,
+        help="Scale factor to enlarge the output image (e.g. 2, 4). Default: 1 (Original Size)",
     )
     parser.add_argument(
         "-w",
@@ -250,6 +275,7 @@ if __name__ == "__main__":
         output_path,
         blur_sigma=args.blur,
         sample_radius=args.radius,
+        output_scale=args.scale,
         known_block_w=args.block_width,
         known_block_h=args.block_width,
         known_phase_x=args.phase_x,
